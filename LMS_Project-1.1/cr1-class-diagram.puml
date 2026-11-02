@@ -1,0 +1,45 @@
+@startuml
+title LMS v1.1 — CR1 Implementation Class Diagram
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+
+class LecturerWindow {
+  -database: Database&
+  -lecturerId: int
+  +grantDeadlineExtension()
+}
+
+class StudentWindow {
+  -database: Database&
+  -studentId: int
+  +loadAssignments()
+}
+
+class Database {
+  +createTables(): bool
+  +grantAssignmentExtension(lecturerId, assignmentId, studentId, deadline, reason, error): bool
+  +grantClassAssignmentExtension(lecturerId, assignmentId, deadline, reason, error): bool
+  +getStudentAssignments(studentId, assignments): bool
+  +submitAssignment(studentId, assignmentId, fileReference): bool
+  +getSubmissionMarkingContext(lecturerId, submissionId, context, error): bool
+}
+
+class StudentAssignmentRecord {
+  +assignmentId: int
+  +deadline: string
+  +deadlineExtension: string
+  +latestVersion: int
+  +latestStatus: string
+}
+
+LecturerWindow --> Database : selects scope and grants
+StudentWindow --> Database : loads assignment rows
+Database ..> StudentAssignmentRecord : returns effective deadline
+
+note right of Database
+  Effective deadline =
+  max(original, class, individual).
+  Class extensions are assignment-scoped;
+  individual extensions remain student-scoped.
+end note
+@enduml

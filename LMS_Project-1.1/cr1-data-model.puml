@@ -1,0 +1,57 @@
+@startuml
+title LMS v1.1 — CR1 Deadline Extension Data Model
+hide methods
+hide stereotypes
+skinparam shadowing false
+
+entity assignments {
+  * assignment_id : INTEGER <<PK>>
+  --
+  course_id : INTEGER <<FK>>
+  deadline : TEXT
+}
+
+entity course_lecturers {
+  * course_id : INTEGER <<PK, FK>>
+  * lecturer_id : INTEGER <<PK, FK>>
+}
+
+entity enrolments {
+  * student_id : INTEGER <<PK, FK>>
+  * course_id : INTEGER <<PK, FK>>
+}
+
+entity extensions {
+  * extension_id : INTEGER <<PK>>
+  --
+  assignment_id : INTEGER <<FK>>
+  student_id : INTEGER <<FK>>
+  revised_deadline : TEXT
+  granted_by : INTEGER <<FK>>
+  reason : TEXT
+  UNIQUE (assignment_id, student_id)
+}
+
+entity assignment_class_extensions {
+  * assignment_id : INTEGER <<PK, FK>>
+  --
+  revised_deadline : TEXT
+  granted_by : INTEGER <<FK>>
+  reason : TEXT
+  granted_at : TEXT
+}
+
+entity users {
+  * user_id : INTEGER <<PK>>
+  --
+  role : TEXT
+}
+
+assignments ||--o{ extensions : individual grants
+users ||--o{ extensions : granted by / granted to
+assignments ||--o| assignment_class_extensions : class grant
+users ||--o{ assignment_class_extensions : granted by
+assignments }o--|| course_lecturers : course authorization
+assignments }o--|| enrolments : course roster
+users ||--o{ enrolments : enrolled students
+@enduml

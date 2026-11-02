@@ -1,0 +1,56 @@
+@startuml
+title LMS v1.0 — UML Deployment Diagram
+left to right direction
+skinparam shadowing false
+skinparam componentStyle uml2
+
+actor Student
+actor Lecturer
+actor "Head of Department" as HOD
+actor Administrator as Admin
+
+node "School workstation\n(single Windows PC)" <<device>> as PC {
+  node "Windows 10/11" <<executionEnvironment>> as Windows {
+    node "MSYS2 UCRT64 runtime\n(or packaged equivalent)" <<executionEnvironment>> as Runtime {
+      artifact "lms_gui.exe\nQt 6 desktop application" as App
+      artifact "Qt 6 Widgets runtime" as Qt
+      artifact "SQLite 3 runtime" as SQLite
+      artifact "Argon2 runtime" as Argon2
+      artifact "UCRT runtime libraries" as UCRT
+    }
+
+    database "lms.db\nSQLite database\nC:\\SchoolLMS\\lms.db" as DB
+    artifact "Assignment files\nuser-selected local paths" as Files
+  }
+}
+
+Student --> App : signs in and uses student workspace
+Lecturer --> App : signs in and uses lecturer workspace
+HOD --> App : signs in and uses HOD workspace
+Admin --> App : signs in and uses administration workspace
+
+App --> Qt : GUI
+App --> SQLite : database driver
+App --> Argon2 : password hashing
+App --> UCRT : native runtime
+App --> DB : local SQLite file access
+App --> Files : stores/resolves file references
+
+note right of PC
+  This release is a desktop application,
+  not a client/server deployment.
+  The roles use the application on this PC.
+  SQLite and submitted files are local;
+  files are not uploaded or synchronized.
+end note
+
+note bottom of DB
+  Includes the per-student extensions table
+  and the v1.1 assignment class extensions table.
+  On first launch the schema can be created,
+  but the database has no initial user.
+  Secure first-administrator provisioning
+  is required before operational use.
+end note
+
+@enduml

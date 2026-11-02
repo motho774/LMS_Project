@@ -1,0 +1,33 @@
+@startuml
+title LMS v1.1 — CR1 Class Extension and Student Submission Sequence
+skinparam shadowing false
+
+actor Lecturer
+participant LecturerWindow
+participant Database
+database "SQLite" as DB
+actor Student
+participant StudentWindow
+
+Lecturer -> LecturerWindow : choose assignment, Whole class,\ndeadline and reason
+LecturerWindow -> Database : grantClassAssignmentExtension(...)
+Database -> DB : BEGIN IMMEDIATE
+Database -> DB : verify lecturer teaches assignment
+Database -> DB : validate later, future deadline
+Database -> DB : upsert assignment_class_extensions
+Database -> DB : append system_audit event (scope=CLASS)
+Database -> DB : COMMIT
+Database --> LecturerWindow : success / error
+
+Student -> StudentWindow : open or refresh assignments
+StudentWindow -> Database : getStudentAssignments(studentId)
+Database -> DB : join assignment, class extension,\nindividual extension and enrolment
+Database -> Database : resolve maximum applicable deadline\nand extension label
+Database --> StudentWindow : assignment rows with deadline and label
+Student <-- StudentWindow : display class extension and revised deadline
+
+Student -> StudentWindow : submit assignment
+StudentWindow -> Database : submitAssignment(studentId, assignmentId, file)
+Database -> DB : validate submission against effective deadline
+Database --> StudentWindow : accept or reject
+@enduml
